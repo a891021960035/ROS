@@ -1,73 +1,114 @@
 #!/usr/bin/python3
 import rospy
 from std_msgs.msg import Float32
+from ntu_racing.msg import arduino_decode1_msg
+from ntu_racing.msg import arduino_decode2_msg
+from ntu_racing.msg import motor_control_unit_msg
+from ntu_racing.msg import battery_management_system_msg
+from ntu_racing.msg import inertial_measurement_unit_msg
 
-ID = [0]
-
-def get_id(data):
-	ID[0] = data.data
 
 def csv_arduino1(data):
-	string = data.data
+	Data = data.data
+	currenttime = str(Data.currenttime)
+	acc_pedal1 = str(Data.acc_pedal1)
+	acc_pedal2 = str(Data.acc_pedal2)
+	brake_pedal1 = str(Data.brake_pedal1)
+	brake_pedal2 = str(Data.brake_pedal2)
+	fl_wheel_angspeed = str(Data.fl_wheel_angspeed)
+	fr_wheel_angspeed = str(Data.fr_wheel_angspeed)
+
 	with open('Data/Arduino1_decode.csv', 'a') as f:
-        f.write(string)
+        f.write(f'{currenttime},{acc_pedal1},{acc_pedal2},{brake_pedal1},{brake_pedal2},{fl_wheel_angspeed},{fr_wheel_angspeed}\n')
 
 def csv_arduino2(data):
-	string = data.data
+	Data = data.data
+	currenttime = str(Data.currenttime)
+	steer_angle = str(Data.steer_angle)
+	rr_wheel_angspeed = str(Data.rr_wheel_angspeed)
+	rl_wheel_angspeed = str(Data.rl_wheel_angspeed)
+
 	with open('Data/Arduino2_decode.csv', 'a') as f:
-        f.write(string)
+        f.write(f'{currenttime},{steer_angle},{rr_wheel_angspeed},{rl_wheel_angspeed}\n')
 
-def csv_motor_control_unit_state1(data):
-	string = data.data
-	with open('Data/MCU_state1.csv', 'a') as f:
-        f.write(data)
+def csv_motor_control_unit(data):
+	Data = data.data
+	currenttime = str(Data.currenttime)
 
-def csv_motor_control_unit_state2(data):
-	string = data.data
-	with open('Data/MCU_state2.csv', 'a') as f:
-        f.write(data)
+	motor_T = str(Data.motor_T)
+	controller_T = str(Data.controller_T)
 
-def csv_battery_management_system_state(data):
-	string = data.data
-	with open('Data/BMS_State.csv', 'a') as f:
-		f.write(data)
+	battery_V = str(Data.battery_V)
+	battery_I = str(Data.battery_I)
+	motor_I = str(Data.motor_I)
+	motor_speed = str(Data.motor_speed)
+	car_speed = str(Data.car_speed)
 
-def csv_battery_management_system_pack(data):
-	string = data.data
-	with open('Data/BMS_Pack.csv', 'a') as f
-		f.write(data)
+	if Data.state == 1:
+		if Data.num == 1:
+			with open('Data/MCU1_state1.csv', 'a') as f:
+	        	f.write(f'{currenttime},{motor_T},{controller_T},{n}\n') 
+	    elif Data.num == 2:
+	    	with open('Data/MCU2_state1.csv', 'a') as f:
+	        	f.write(f'{currenttime},{motor_T},{controller_T},{n}\n')
+	elif Data.state == 2:
+		if Data.num == 1:
+			with open('Data/MCU1_state2.csv', 'a') as f:
+	        	f.write(f'{currenttime},{battery_V},{battery_I},{motor_I},{motor_speed},{car_speed}\n') 
+	    elif Data.num == 2:
+	    	with open('Data/MCU2_state2.csv', 'a') as f:
+	        	f.write(f'{currenttime},{battery_V},{battery_I},{motor_I},{motor_speed},{car_speed}\n') 
+
+def csv_battery_management(data):
+	Data = data.data
+	currenttime = str(Data.currenttime)
+
+	Pack_voltage = str(Data.Pack_voltage)
+	SOC = str(Data.SOC)
+
+	Pack1_T = str(Data.Pack1_T)
+	Pack2_T = str(Data.Pack2_T)
+	Pack3_T = str(Data.Pack3_T)
+	Pack4_T = str(Data.Pack4_T)
+	Pack5_T = str(Data.Pack5_T)
+
+	if Data.mode == 1:
+		with open('Data/BMS_State.csv', 'a') as f:
+	        f.write(f'{currenttime},{Pack_voltage},{SOC}\n')
+    elif Data.mode == 2:
+    	with open('Data/BMS_Pack.csv', 'a') as f
+        	f.write(f'{currenttime},{Pack1_T},{Pack2_T},{Pack3_T},{Pack4_T},{Pack5_T}\n')
 
 def csv_inertial_measurement_unit_accelaration(data):
-	string = data.data
-	with open('Data/IMU_Angular_Speed.csv', 'a') as f:
-		f.write(data)
+	Data = data.data
+	currenttime = str(Data.currenttime)
 
-def csv_inertial_measurement_unit_position(data):
-	string = data.data
-	with open('Data/IMU_Attitude.csv', 'a') as f:
-		f.write(data)
+	x = str(Data.x)
+	y = str(Data.y)
+	z = str(Data.z)
+
+	my = str(Data.my)
+	mx = str(Data.mx)
+
+	if Data.mode == 1:
+		if Data.type == 1:
+			with open('Data/IMU_Acceleration.csv', 'a') as f:
+                f.write(f'{currenttime},{x},{y},{z}\n')            
+        elif Data.type == 2:
+			with open('Data/IMU_Angular_Speed.csv', 'a') as f:
+                f.write(f'{currenttime},{x},{y},{z}\n')
+    elif Data.mode == 2:
+		with open('Data/IMU_Attitude.csv', 'a') as f:
+            f.write(f'{currenttime},{my},{mx}\n')
 
 def listener():
     rospy.init_node('v_control', anonymous=True)
-    rospy.Subscriber("id", Float32, get_id'''怎麼單純使用變數''')
-    rospy.Subscriber("arduino1", Float32, csv_arduino1)
-    rospy.Subscriber("arduino2", Float32, csv_arduino2)
-
-    if ID[0] == 0x0808D0A7 or 0x0808D0A8:
-    	rospy.Subscriber("motor_control_unit", Float32, csv_motor_control_unit_state1)
-    elif ID[0] == 0x0809D0A7 or 0x0809D0A8:
-    	rospy.Subscriber("motor_control_unit", Float32, csv_motor_control_unit_state2)
-
-    if ID[0] == 0x1808D0F4:
-    	rospy.Subscriber("battery_management_system", Float32, csv_battery_management_system_state)
-	elif ID[0] == 0x1809D0F4:
-		rospy.Subscriber("battery_management_system", Float32, csv_battery_management_system_pack)
-
-	if ID[0] == 0x08f02de2 or 0xcf02ae2:
-    	rospy.Subscriber("inertial_measurement_unit", Float32, csv_inertial_measurement_unit_accelaration)
-	elif ID[0] == 0x0cf029e2:
-		rospy.Subscriber("inertial_measurement_unit", Float32, csv_inertial_measurement_unit_position)
-    # spin() simply keeps python from exiting until this node is stopped
+    rospy.Subscriber("arduino1", arduino_decode1_msg, csv_arduino1)
+    rospy.Subscriber("arduino2", arduino_decode2_msg, csv_arduino2)
+    rospy.Subscriber("motor_control_unit", motor_control_unit_msg, csv_motor_control_unit)    
+	rospy.Subscriber("battery_management_system", battery_management_system_msg, csv_battery_management_system)
+	rospy.Subscriber("inertial_measurement_unit", inertial_measurement_unit_msg, csv_inertial_measurement_unit)
+	# spin() simply keeps python from exiting until this node is stopped
     rospy.spin()
 
 
@@ -78,11 +119,17 @@ if __name__ == '__main__':
     with open('Data/Arduino2_decode.csv', 'w') as f:
         f.write('Arduino2_decode Input:\r\n')
         f.write('time,steer angle (%),rl wheelspeed (rad/s),rf wheelspeed (rad/s)\n')
-    with open('Data/MCU_state1.csv', 'w') as f:
-        f.write('MCU_state1 Input:\r\n')
-        f.write('time,MMotor Temp (deg C),Controller Temp (deg C),MCU number\n')
-    with open('Data/MCU_state2.csv', 'w') as f:
-        f.write('MCU_state2 Input:\r\n')
+    with open('Data/MCU1_state1.csv', 'w') as f:
+        f.write('MCU1_state1 Input:\r\n')
+        f.write('time,Motor Temp (deg C),Controller Temp (deg C),MCU number\n')
+    with open('Data/MCU2_state1.csv', 'w') as f:
+        f.write('MCU2_state1 Input:\r\n')
+        f.write('time,Motor Temp (deg C),Controller Temp (deg C),MCU number\n')
+    with open('Data/MCU1_state2.csv', 'w') as f:
+        f.write('MCU1_state2 Input:\r\n')
+        f.write('time,Battery Voltage (V),Battery Current (A),Motor Current (A),Motor Speed (rpm),Car Speed (m/s),MCU number\n')
+    with open('Data/MCU2_state2.csv', 'w') as f:
+        f.write('MCU2_state2 Input:\r\n')
         f.write('time,Battery Voltage (V),Battery Current (A),Motor Current (A),Motor Speed (rpm),Car Speed (m/s),MCU number\n')
     with open('Data/BMS_State.csv', 'w') as f:
         f.write('BMS_State Input:\r\n')
