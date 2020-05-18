@@ -19,7 +19,7 @@ def csv_arduino1(data):
 	fr_wheel_angspeed = str(Data.fr_wheel_angspeed)
 
 	with open('Data/Arduino1_decode.csv', 'a') as f:
-        f.write(f'{currenttime},{acc_pedal1},{acc_pedal2},{brake_pedal1},{brake_pedal2},{fl_wheel_angspeed},{fr_wheel_angspeed}\n')
+        f.write(currenttime +','+ acc_pedal1 +','+ acc_pedal2 +','+ brake_pedal1 +','+ brake_pedal2 +','+ fl_wheel_angspeed +','+ fr_wheel_angspeed +'\n')
 
 def csv_arduino2(data):
 	Data = data.data
@@ -29,7 +29,7 @@ def csv_arduino2(data):
 	rl_wheel_angspeed = str(Data.rl_wheel_angspeed)
 
 	with open('Data/Arduino2_decode.csv', 'a') as f:
-        f.write(f'{currenttime},{steer_angle},{rr_wheel_angspeed},{rl_wheel_angspeed}\n')
+        f.write(currenttime +','+ steer_angle +','+ rr_wheel_angspeed +','+ rl_wheel_angspeed +'\n')
 
 def csv_motor_control_unit(data):
 	Data = data.data
@@ -47,17 +47,17 @@ def csv_motor_control_unit(data):
 	if Data.state == 1:
 		if Data.num == 1:
 			with open('Data/MCU1_state1.csv', 'a') as f:
-	        	f.write(f'{currenttime},{motor_T},{controller_T},{n}\n') 
+	        	f.write(currenttime +','+ motor_T +','+ controller_T +'\n') 
 	    elif Data.num == 2:
 	    	with open('Data/MCU2_state1.csv', 'a') as f:
-	        	f.write(f'{currenttime},{motor_T},{controller_T},{n}\n')
+	        	f.write(currenttime +','+ motor_T +','+ controller_T +'\n')
 	elif Data.state == 2:
 		if Data.num == 1:
 			with open('Data/MCU1_state2.csv', 'a') as f:
-	        	f.write(f'{currenttime},{battery_V},{battery_I},{motor_I},{motor_speed},{car_speed}\n') 
+	        	f.write(currenttime +','+ battery_V +','+ battery_I +','+ motor_I +','+ motor_speed +','+ car_speed +'\n') 
 	    elif Data.num == 2:
 	    	with open('Data/MCU2_state2.csv', 'a') as f:
-	        	f.write(f'{currenttime},{battery_V},{battery_I},{motor_I},{motor_speed},{car_speed}\n') 
+	        	f.write(currenttime +','+ battery_V +','+ battery_I +','+ motor_I +','+ motor_speed +','+ car_speed +'\n') 
 
 def csv_battery_management(data):
 	Data = data.data
@@ -74,10 +74,10 @@ def csv_battery_management(data):
 
 	if Data.mode == 1:
 		with open('Data/BMS_State.csv', 'a') as f:
-	        f.write(f'{currenttime},{Pack_voltage},{SOC}\n')
+	        f.write(currenttime +','+ Pack_voltage +','+ SOC +'\n')
     elif Data.mode == 2:
     	with open('Data/BMS_Pack.csv', 'a') as f
-        	f.write(f'{currenttime},{Pack1_T},{Pack2_T},{Pack3_T},{Pack4_T},{Pack5_T}\n')
+        	f.write(currenttime +','+ Pack1_T +','+ Pack2_T +','+ Pack3_T +','+ Pack4_T +','+ Pack5_T +'\n')
 
 def csv_inertial_measurement_unit_accelaration(data):
 	Data = data.data
@@ -93,13 +93,13 @@ def csv_inertial_measurement_unit_accelaration(data):
 	if Data.mode == 1:
 		if Data.type == 1:
 			with open('Data/IMU_Acceleration.csv', 'a') as f:
-                f.write(f'{currenttime},{x},{y},{z}\n')            
+                f.write(currenttime +','+ x +','+ y +','+ z +'\n')            
         elif Data.type == 2:
 			with open('Data/IMU_Angular_Speed.csv', 'a') as f:
-                f.write(f'{currenttime},{x},{y},{z}\n')
+                f.write(currenttime +','+ x +','+ y +','+ z +'\n')
     elif Data.mode == 2:
 		with open('Data/IMU_Attitude.csv', 'a') as f:
-            f.write(f'{currenttime},{my},{mx}\n')
+            f.write(currenttime +','+ my +','+ mx +'\n')
 
 def listener():
     rospy.init_node('v_control', anonymous=True)

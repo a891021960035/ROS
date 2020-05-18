@@ -84,8 +84,8 @@ class Arduino:
         front_car_speedL = front_car_speed % 256
         front_car_speedH = int(front_car_speed / 256)
         
-        print(f'acc 1 : {acc_pedal1*0.39}%\nacc 2 : {acc_pedal2*0.39}%')
-        print(f'fl_wheel_angspeed : {fl_wheel_angspeed}\nfront_car_speedL : {front_car_speedL}\nfront_car_speedH : {front_car_speedH}')
+        print('acc 1 : '+ acc_pedal1*0.39 +'%\nacc 2 : '+ acc_pedal2*0.39 +'%')
+        print('fl_wheel_angspeed : '+ fl_wheel_angspeed +'\nfront_car_speedL : '+ front_car_speedL +'\nfront_car_speedH : 'front_car_speedH)
 
         if brake_pedal1 > 0 or brake_pedal2 > 0:
             ALL_GPIO_control(Led_Pin, 1)
@@ -185,9 +185,11 @@ class BMS:
         Min_CellV = (msg.data[5]*256+msg.data[6]) * 0.1 
         #mV
         debyte8 = dectobin(msg.data[7])
+
         for i in range(8):
             if debyte8[i] == 1:
                 print(err_dict[i])
+
         if debyte8[7] == 1:
             ALL_GPIO_control(Bat_shutdown_Pin, 1)
         elif debyte8[7] == 0:
@@ -374,7 +376,7 @@ if __name__ == "__main__":
                 if msg.arbitration_id == 0x080AD091:
                     print('Receive message from Arduino 1')
                     acc_pedal, brk_pedal, fr_wheel_angspeed, fl_wheel_angspeed, fspdL, fspdH = Arduino.decode_1(msg)
-                    print(f'fspdL : {fspdL}/fspdH : {fspdH}\n')
+                    print('fspdL : '+ fspdL +'/fspdH : '+ fspdH +'\n')
                     acc_pedal = int(acc_pedal - pedal_adjust_const)
 
                     msg1 = can.Message(arbitration_id = 0x0008A7D0,
