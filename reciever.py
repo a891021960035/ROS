@@ -13,7 +13,6 @@ import math
 import numpy as np
 import can
 import RPi.GPIO as GPIO
-import threading
 
 from GPS_stuff import GPS_serial_setup, GPS_read
 from IP_stuff import Send_IP_info
@@ -28,13 +27,13 @@ BMS_pub = rospy.Publisher("battery_management_system", battery_management_system
 IMU_pub = rospy.Publisher("inertial_measurement_unit", inertial_measurement_unit_msg, queue_size=10)
 
 
-Led_Pin = 12                 #Brake Pin
-Vcu_shutdown_Pin = 32
-WarningLED1_Pin = 29         #Canbus fail
-WarningLED2_Pin = 31         #different accpedal signal
-Brake_sig_Pin = 36           #for BSPD
-Bat_shutdown_Pin = 15        #overheated
-Pump_control_Pin = 12        #turn on pump when over critical temp
+# Led_Pin = 12                 #Brake Pin
+# Vcu_shutdown_Pin = 32
+# WarningLED1_Pin = 29         #Canbus fail
+# WarningLED2_Pin = 31         #different accpedal signal
+# Brake_sig_Pin = 36           #for BSPD
+# Bat_shutdown_Pin = 15        #overheated
+# Pump_control_Pin = 12        #turn on pump when over critical temp
 
 # tempL = 0
 # tempH = 0
@@ -311,16 +310,22 @@ err_dict = {0: 'BMS Error',
             5: 'Over Voltage',
             6: 'Low SOC',
             7: 'Over Temperature'
-            }
+            }    
 
-def run(var):
-    var=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]
-    
+# [imu.data, mode]
 
+if __name__ == "__main__":
     os.system('sudo ip link set can0 type can bitrate 250000')
     os.system('sudo ifconfig can0 txqueuelen 1000')
     os.system('sudo ifconfig can0 up')
 
+    Led_Pin = 12                 #Brake Pin
+	Vcu_shutdown_Pin = 32
+	WarningLED1_Pin = 29         #Canbus fail
+	WarningLED2_Pin = 31         #different accpedal signal
+	Brake_sig_Pin = 36           #for BSPD
+	Bat_shutdown_Pin = 15        #overheated
+	Pump_control_Pin = 12        #turn on pump when over critical temp
 
     can0 = can.interface.Bus(channel='can0', bustype='socketcan_ctypes')
 
@@ -362,6 +367,7 @@ def run(var):
             if msg is None:
                 ALL_GPIO_control(WarningLED1_Pin, 1)
                 print('Timeout , no message.')
+
             else:
                 ALL_GPIO_control(WarningLED1_Pin, 0)
 
@@ -369,18 +375,12 @@ def run(var):
                     print('Receive message from Arduino 1')
                     acc_pedal, brk_pedal, fr_wheel_angspeed, fl_wheel_angspeed, fspdL, fspdH = Arduino.decode_1(msg)
                     print(f'fspdL : {fspdL}/fspdH : {fspdH}\n')
-                    with threading.Lock():
-                        var[0] = acc_pedal / 2
-                        var[1] = brk_pedal / 2
-                        var[3] = fr_wheel_angspeed
-                        var[4] = fl_wheel_angspeed
                     acc_pedal = int(acc_pedal - pedal_adjust_const)
+
                     msg1 = can.Message(arbitration_id = 0x0008A7D0,
-                                       data = [20,acc_pedal,brk_pedal,0,90,0,234,0],
-                                       extended_id = True)
+                                       data = [20,acc_pedal,brk_pedal,0,90,0,234,0], extended_id = True)
                     msg2 = can.Message(arbitration_id = 0x0008A8D0,
-                                       data = [20,acc_pedal,brk_pedal,0,90,0,234,0],
-                                       extended_id = True)
+                                       data = [20,acc_pedal,brk_pedal,0,90,0,234,0], extended_id = True)
                     print('send to mcu')
                     can0.send(msg1)
                     can0.send(msg2)
@@ -388,10 +388,6 @@ def run(var):
                 elif msg.arbitration_id == 0x080AD092:
                     print('Receive message from Arduino 2')
                     steer_angle, rr_wheel_angspeed, rl_wheel_angspeed = Arduino.decode_2(msg)
-                    with threading.Lock():
-                        var[2] = steer_angle
-                        var[5] = rr_wheel_angspeed
-                        var[6] = rl_wheel_angspeed
 
                 elif msg.arbitration_id == 0x0808D0A7:
                     print('Receive message from MCU 1 State 1')
@@ -420,37 +416,21 @@ def run(var):
                 elif msg.arbitration_id == 0x08f02de2:
                     print('Receive message from IMU Acceleration')
                     x, y, z = IMU.get_accelaration(msg, 'Acc')
-                    with threading.Lock():
-                        var[10] = x
-                        var[11] = y
-                        var[12] = z
 
                 elif msg.arbitration_id == 0xcf02ae2:
                     print('Receive message from IMU Angular acceleration')
                     x, y, z = IMU.get_accelaration(msg, 'Ang')
-                    with threading.Lock():
-                        var[13] = x
-                        var[14] = y
-                        var[15] = z
 
                 elif msg.arbitration_id == 0x0cf029e2:
                     print('Receive message from IMU Posture')
                     my, mx = IMU.get_position(msg)
-                    with threading.Lock():
-                        var[17] = y
-                        var[18] = z
 
                 else:
                     print(msg)
 
                 msgDashboard = can.Message(arbitration_id = 0x1600d027,data = [int(fspdL),int(fspdH),int(tempL),int(tempH),SOC,0,0],extended_id = True)
                 can0.send(msgDashboard)
+
     except Exception as e:
         can0.flush_tx_buffer()
         print(e)
-
-
-[imu.data, mode]
-if __name__ == "__main__":
-    var={0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19}
-    run(var)
